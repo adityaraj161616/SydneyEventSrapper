@@ -3,7 +3,7 @@ import { connectToDatabase } from "@/lib/mongodb"
 
 export async function POST(request: Request) {
   try {
-    const { email, eventId, eventTitle } = await request.json()
+    const { email, eventId, eventTitle, isSubscribed } = await request.json()
 
     // Validate input
     if (!email || !eventId) {
@@ -17,8 +17,27 @@ export async function POST(request: Request) {
       email,
       eventId,
       eventTitle,
+      isSubscribed,
       timestamp: new Date(),
     })
+
+    // If user opted in, also add to subscribers list
+    if (isSubscribed) {
+      // Use upsert to avoid duplicates
+      await db.collection("subscribers").updateOne(
+        { email },
+        {
+          $set: {
+            email,
+            lastUpdated: new Date(),
+          },
+          $setOnInsert: {
+            subscribedAt: new Date(),
+          },
+        },
+        { upsert: true },
+      )
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

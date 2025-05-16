@@ -137,6 +137,29 @@ To keep your event data fresh, set up a scheduled job to trigger the scraper:
    - You can use services like Uptime Robot, Cronitor, or GitHub Actions
    - Set up a job to make a GET request to your `/cron` endpoint
 
+## 🔄 Automatic Event Updates
+
+The system automatically updates events from source websites every 12 hours using Vercel's Cron Jobs. This ensures that the event data is always fresh and up-to-date.
+
+### How it works:
+
+1. A cron job runs every 12 hours, triggering the `/cron` endpoint
+2. The scraper fetches the latest events from configured websites
+3. New events are added to the database
+4. Subscribers are notified about new events via email (if they've opted in)
+
+### Email Notifications
+
+When users click "Get Tickets" for an event, they're prompted to enter their email address. They can opt-in to receive notifications about:
+
+- New events added to the system
+- Updates to events they've shown interest in
+- Similar events based on their preferences
+
+Users can unsubscribe at any time by:
+- Clicking the unsubscribe link in any email
+- Visiting the `/unsubscribe` page on the website
+
 ## 🚢 Deployment
 
 This project is designed to be deployed on Vercel:

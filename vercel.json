@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/cron?token=$CRON_SECRET_TOKEN",
+      "schedule": "0 */12 * * *"
+    }
+  ]
+}

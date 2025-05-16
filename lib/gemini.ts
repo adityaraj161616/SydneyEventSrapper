@@ -1,13 +1,27 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { google } from '@google/generative-ai';
+import { GoogleGenerativeAI } from "@google/generative-ai"
+
+// Initialize the Gemini API with the provided key
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || ""
+
+// Validate API key
+if (!GEMINI_API_KEY) {
+  console.warn("GEMINI_API_KEY is not defined in environment variables")
+}
 
 // Initialize the Gemini API
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY)
 
 export async function extractEventsWithAI(content, sourceName) {
   try {
+    // Validate API key before making request
+    if (!GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY is not defined")
+    }
+
+    console.log(`Using Gemini AI to extract events from ${sourceName}...`)
+
     // Get the generative model
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" })
 
     // Create a prompt that instructs Gemini to extract event information
     const prompt = `
@@ -30,38 +44,31 @@ export async function extractEventsWithAI(content, sourceName) {
       
       HTML Content:
       ${content.substring(0, 100000)} // Limit content length to avoid token limits
-    `;
+    `
 
     // Generate content
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const result = await model.generateContent(prompt)
+    const response = await result.response
+    const text = response.text()
 
     // Extract JSON from the response
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    const jsonMatch = text.match(/\[[\s\S]*\]/)
     if (!jsonMatch) {
-      console.error("No JSON found in AI response");
-      return [];
+      console.error("No JSON found in AI response")
+      return []
     }
 
     // Parse the JSON
     try {
-      const events = JSON.parse(jsonMatch[0]);
-      return events;
+      const events = JSON.parse(jsonMatch[0])
+      console.log(`Successfully extracted ${events.length} events using Gemini AI`)
+      return events
     } catch (error) {
-      console.error("Error parsing JSON from AI response:", error);
-      return [];
+      console.error("Error parsing JSON from AI response:", error)
+      return []
     }
   } catch (error) {
-    console.error("Error using Gemini AI:", error);
-    return [];
+    console.error("Error using Gemini AI:", error)
+    return []
   }
 }
-
-async function listModels() {
-  const client = new google.generativeai.GenerativeAIClient({ apiKey: process.env.GEMINI_API_KEY });
-  const models = await client.listModels();
-  console.log(models);
-}
-
-listModels();

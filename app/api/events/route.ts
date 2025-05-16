@@ -1,38 +1,24 @@
-import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
-import { filterEventsByDate } from "@/lib/filterEvents";
+import { NextResponse } from "next/server"
+import { connectToDatabase } from "@/lib/mongodb"
 
-async function fetchEventsFromDatabase() {
+export async function GET() {
   try {
-    console.log("API: Fetching events from database");
-    const { db } = await connectToDatabase();
+    console.log("API: Fetching events from database")
+    const { db } = await connectToDatabase()
 
     // Get all events, sorted by date (newest first)
     const events = await db
       .collection("events")
       .find({})
       .sort({ date: 1 }) // Upcoming events first
-      .toArray();
+      .toArray()
 
-    console.log(`API: Found ${events.length} events`);
-    return events;
+    console.log(`API: Found ${events.length} events`)
+
+    // If no events are found, return an empty array but with a 200 status
+    return NextResponse.json(events)
   } catch (error) {
-    console.error("Database error:", error);
-    throw new Error("Failed to fetch events");
+    console.error("Database error:", error)
+    return NextResponse.json({ error: "Failed to fetch events" }, { status: 500 })
   }
-}
-
-export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const filter = url.searchParams.get("filter") || "all";
-
-  // Fetch events from the database
-  const events = await fetchEventsFromDatabase();
-
-  // Filter events based on the query parameter
-  const filteredEvents = filterEventsByDate(events, filter);
-
-  return new Response(JSON.stringify(filteredEvents), {
-    headers: { "Content-Type": "application/json" },
-  });
 }

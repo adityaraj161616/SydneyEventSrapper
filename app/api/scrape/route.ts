@@ -1,16 +1,26 @@
-import { scrapeEvents } from "@/lib/scraper";
+import { NextResponse } from "next/server"
+import { scrapeEvents } from "@/lib/scraper"
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const events = await scrapeEvents(); // This function should perform real-time scraping
-    return new Response(JSON.stringify({ success: true, events }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    console.log("Starting manual event scraping...")
+
+    // This endpoint is for manually triggering the scraper
+    const events = await scrapeEvents()
+
+    console.log(`Scraping complete. Found ${events.length} events.`)
+
+    return NextResponse.json({
+      success: true,
+      message: `Successfully scraped ${events.length} events`,
+    })
   } catch (error) {
-    console.error("Error scraping events:", error);
-    return new Response(JSON.stringify({ success: false, error: error.message }), {
-      headers: { "Content-Type": "application/json" },
-      status: 500,
-    });
+    console.error("Scraping error:", error)
+    return NextResponse.json(
+      {
+        error: `Failed to scrape events: ${error instanceof Error ? error.message : String(error)}`,
+      },
+      { status: 500 },
+    )
   }
 }

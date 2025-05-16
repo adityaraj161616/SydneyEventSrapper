@@ -11,6 +11,7 @@ interface EmailModalProps {
 
 export default function EmailModal({ event, onClose }: EmailModalProps) {
   const [email, setEmail] = useState("")
+  const [isSubscribed, setIsSubscribed] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
@@ -37,6 +38,7 @@ export default function EmailModal({ event, onClose }: EmailModalProps) {
           email,
           eventId: event._id,
           eventTitle: event.title,
+          isSubscribed,
         }),
       })
 
@@ -60,8 +62,8 @@ export default function EmailModal({ event, onClose }: EmailModalProps) {
   }
 
   return (
-    <div className="modal-overlay">
-      <div className="modal">
+    <div className="modal-overlay" style={{ opacity: 1, visibility: "visible" }}>
+      <div className="modal" style={{ transform: "scale(1)", opacity: 1 }}>
         <button onClick={onClose} className="modal-close">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -90,26 +92,83 @@ export default function EmailModal({ event, onClose }: EmailModalProps) {
           </div>
 
           {success ? (
-            <div className="success-message">Success! Redirecting you to the event page...</div>
+            <div className="success-message">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              <span>Success! Redirecting you to the event page...</span>
+            </div>
           ) : (
             <form onSubmit={handleSubmit}>
               <div className="form-group">
+                <label htmlFor="email" className="form-label">
+                  Email Address
+                </label>
                 <input
                   type="email"
+                  id="email"
                   placeholder="Your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="input"
+                  className="form-input"
                   disabled={isSubmitting}
                 />
-                {error && <p className="error-message">{error}</p>}
+                {error && (
+                  <p className="form-error">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    {error}
+                  </p>
+                )}
               </div>
 
-              <button type="submit" className="button" disabled={isSubmitting}>
+              <div className="form-checkbox">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={isSubscribed}
+                    onChange={(e) => setIsSubscribed(e.target.checked)}
+                    disabled={isSubmitting}
+                  />
+                  <span>Keep me updated about similar events and offers (you can unsubscribe at any time)</span>
+                </label>
+              </div>
+
+              <button type="submit" className="button button-primary" disabled={isSubmitting}>
                 {isSubmitting ? "Submitting..." : "Continue to Tickets"}
               </button>
 
-              <p className="privacy-note">We'll never share your email with anyone else.</p>
+              <p className="privacy-note">
+                We'll never share your email with anyone else. By continuing, you agree to our{" "}
+                <a href="/privacy" className="text-primary">
+                  Privacy Policy
+                </a>
+                .
+              </p>
             </form>
           )}
         </div>

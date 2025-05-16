@@ -1,0 +1,162 @@
+.recommendations-container {
+  background-color: var(--color-background-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-6);
+  margin-bottom: var(--spacing-8);
+}
+
+.recommendations-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  margin-bottom: var(--spacing-4);
+}
+
+.preferences-form {
+  margin-bottom: var(--spacing-6);
+}
+
+.preferences-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin-bottom: var(--spacing-4);
+}
+
+.preferences-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+}
+
+@media (min-width: 768px) {
+  .preferences-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.preference-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.preference-label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-light);
+}
+
+.preference-select {
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.preference-select:focus {
+  outline: none;
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 3px rgba(93, 63, 211, 0.1);
+}
+
+.preference-select option:disabled {
+  color: var(--color-text-lighter);
+  font-style: italic;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.checkbox-label input {
+  accent-color: var(--color-primary);
+}
+
+.get-recommendations-button {
+  width: 100%;
+  margin-top: var(--spacing-4);
+}
+
+.recommendations-error {
+  background-color: rgba(245, 101, 101, 0.1);
+  color: var(--color-error);
+  padding: var(--spacing-4);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-4);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+}
+
+.recommendations-error-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.recommendations-list {
+  margin-top: var(--spacing-6);
+}
+
+.recommendations-subtitle {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  margin-bottom: var(--spacing-4);
+}
+
+.recommendation-item {
+  padding: var(--spacing-4);
+  border-radius: var(--radius-md);
+  background-color: var(--color-background-alt);
+  margin-bottom: var(--spacing-4);
+}
+
+.recommendation-event {
+  margin-bottom: var(--spacing-2);
+}
+
+.recommendation-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin-bottom: var(--spacing-1);
+}
+
+.recommendation-details {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+}
+
+.recommendation-explanation {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  padding-top: var(--spacing-2);
+  border-top: 1px solid var(--color-border-light);
+  margin-top: var(--spacing-2);
+}
+
+.recommendations-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-8) 0;
+  gap: var(--spacing-4);
+}

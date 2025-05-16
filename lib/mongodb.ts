@@ -27,8 +27,16 @@ export async function connectToDatabase() {
     const client = new MongoClient(MONGODB_URI as string)
 
     await client.connect()
-    const db = client.db(MONGODB_DB)
-    console.log("Connected to MongoDB successfully")
+
+    // Extract database name from URI or use default
+    let dbName = MONGODB_DB
+    if (MONGODB_URI.includes("jobboard.fmzx0tb.mongodb.net")) {
+      // If using the provided URI, we'll use the Jobboard database
+      dbName = "sydney_events"
+    }
+
+    const db = client.db(dbName)
+    console.log(`Connected to MongoDB successfully (Database: ${dbName})`)
 
     // Cache the client and db connections
     cachedClient = client
@@ -38,20 +46,5 @@ export async function connectToDatabase() {
   } catch (error) {
     console.error("Failed to connect to MongoDB:", error)
     throw error
-  }
-}
-
-const client = new MongoClient(process.env.MONGODB_URI || "")
-
-export async function storeEvents(events: any[]) {
-  const db = client.db(process.env.MONGODB_DB || "sydney_events")
-  const collection = db.collection("events")
-
-  for (const event of events) {
-    await collection.updateOne(
-      { _id: event._id },
-      { $set: event },
-      { upsert: true } // Insert if not already present
-    )
   }
 }

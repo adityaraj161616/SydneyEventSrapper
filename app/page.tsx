@@ -4,15 +4,17 @@ import { useState, useEffect } from "react"
 import EventCard from "@/components/event-card"
 import EventFilter from "@/components/event-filter"
 import EmailModal from "@/components/email-modal"
+import EventRecommendations from "@/components/event-recommendations"
 import type { Event } from "@/types/event"
 
-export default function EventsPage() {
+export default function Home() {
   const [events, setEvents] = useState<Event[]>([])
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [scraping, setScraping] = useState(false)
   const [filter, setFilter] = useState({
     category: "all",
     date: "all",
@@ -26,7 +28,7 @@ export default function EventsPage() {
         setError(null)
 
         console.log("Fetching events...")
-        const response = await fetch(`/api/events?filter=${filter.date}`)
+        const response = await fetch("/api/events")
 
         if (!response.ok) {
           throw new Error(`Failed to fetch events: ${response.status} ${response.statusText}`)
@@ -42,8 +44,13 @@ export default function EventsPage() {
           setEvents(sampleEvents)
           setFilteredEvents(sampleEvents)
         } else {
-          setEvents(data)
-          setFilteredEvents(data)
+          // Sort events by date (upcoming first)
+          const sortedEvents = [...data].sort((a, b) => {
+            return new Date(a.date).getTime() - new Date(b.date).getTime()
+          })
+
+          setEvents(sortedEvents)
+          setFilteredEvents(sortedEvents)
         }
       } catch (error) {
         console.error("Error fetching events:", error)
@@ -59,20 +66,30 @@ export default function EventsPage() {
     }
 
     fetchEvents()
-  }, [filter.date])
+  }, [])
 
-  // Function to generate sample events when API fails
+  // Update the sample events generation to ensure we have events for the current week
+
+  // Find the generateSampleEvents function and replace it with this version:
   const generateSampleEvents = (): Event[] => {
-    const now = new Date(); // Get the current date once
-    const threeDaysFromNow = new Date(now.getTime() + 86400000 * 3).toISOString();
-    const fiveDaysFromNow = new Date(now.getTime() + 86400000 * 5).toISOString();
-    const tenDaysFromNow = new Date(now.getTime() + 86400000 * 10).toISOString();
+    const today = new Date()
+
+    // Calculate days for this week
+    const dayOfWeek = today.getDay() // 0 = Sunday, 1 = Monday, etc.
+    const daysUntilWednesday = dayOfWeek <= 3 ? 3 - dayOfWeek : 10 - dayOfWeek // Get next Wednesday or this Wednesday
+    const daysUntilFriday = dayOfWeek <= 5 ? 5 - dayOfWeek : 12 - dayOfWeek // Get next Friday or this Friday
+
+    const wednesday = new Date(today)
+    wednesday.setDate(today.getDate() + daysUntilWednesday)
+
+    const friday = new Date(today)
+    friday.setDate(today.getDate() + daysUntilFriday)
 
     return [
       {
         _id: "sample1",
         title: "Sydney Opera House Concert",
-        date: threeDaysFromNow,
+        date: new Date(today.getTime()).toISOString(), // Today
         time: "7:30 PM",
         location: "Sydney Opera House, Bennelong Point",
         description: "A spectacular evening of classical music featuring the Sydney Symphony Orchestra.",
@@ -81,13 +98,13 @@ export default function EventsPage() {
         category: "music",
         price: "From $85",
         source: "Sample",
-        scrapedAt: now.toISOString(),
+        scrapedAt: new Date().toISOString(),
         usedAI: false,
       },
       {
         _id: "sample2",
         title: "Bondi Beach Festival",
-        date: fiveDaysFromNow,
+        date: friday.toISOString(), // This Friday
         time: "10:00 AM - 8:00 PM",
         location: "Bondi Beach, Sydney",
         description: "A day of fun in the sun with music, food stalls, and beach activities for the whole family.",
@@ -96,13 +113,13 @@ export default function EventsPage() {
         category: "family",
         price: "Free",
         source: "Sample",
-        scrapedAt: now.toISOString(),
+        scrapedAt: new Date().toISOString(),
         usedAI: false,
       },
       {
         _id: "sample3",
         title: "Sydney Food & Wine Festival",
-        date: tenDaysFromNow,
+        date: new Date(today.getTime() + 86400000 * 10).toISOString(), // 10 days from now
         time: "11:00 AM - 10:00 PM",
         location: "Darling Harbour, Sydney",
         description: "Taste the best of Sydney's culinary scene with food and wine from top restaurants and wineries.",
@@ -111,17 +128,71 @@ export default function EventsPage() {
         category: "food",
         price: "$25",
         source: "Sample",
-        scrapedAt: now.toISOString(),
+        scrapedAt: new Date().toISOString(),
         usedAI: false,
       },
-    ];
+      {
+        _id: "sample4",
+        title: "Sydney Art Exhibition",
+        date: wednesday.toISOString(), // This Wednesday
+        time: "9:00 AM - 5:00 PM",
+        location: "Art Gallery of NSW, Sydney",
+        description:
+          "Explore contemporary Australian art in this special exhibition featuring works from emerging artists.",
+        url: "https://www.artgallery.nsw.gov.au",
+        image: "/placeholder.svg?height=200&width=400",
+        category: "arts",
+        price: "$15",
+        source: "Sample",
+        scrapedAt: new Date().toISOString(),
+        usedAI: false,
+      },
+      {
+        _id: "sample5",
+        title: "Sydney Harbour Bridge Climb",
+        date: new Date(today.getTime() + 86400000 * 1).toISOString(), // Tomorrow
+        time: "Various times available",
+        location: "Sydney Harbour Bridge, Sydney",
+        description: "Experience breathtaking views of Sydney from the top of the iconic Harbour Bridge.",
+        url: "https://www.bridgeclimb.com",
+        image: "/placeholder.svg?height=200&width=400",
+        category: "sports",
+        price: "From $168",
+        source: "Sample",
+        scrapedAt: new Date().toISOString(),
+        usedAI: false,
+      },
+      {
+        _id: "sample6",
+        title: "Comedy Night at Sydney Comedy Club",
+        date: new Date(today.getTime() + 86400000 * 2).toISOString(), // 2 days from now
+        time: "8:00 PM",
+        location: "Sydney Comedy Club, The Rocks",
+        description: "Laugh the night away with Australia's top comedians at Sydney's premier comedy venue.",
+        url: "https://www.sydneycomedyclub.com.au",
+        image: "/placeholder.svg?height=200&width=400",
+        category: "nightlife",
+        price: "$30",
+        source: "Sample",
+        scrapedAt: new Date().toISOString(),
+        usedAI: false,
+      },
+    ]
   }
 
   // Add this function to the Home component
   const handleManualScrape = async () => {
     try {
-      setLoading(true)
+      setScraping(true)
+      setError(null)
+
+      console.log("Manually triggering scrape...")
       const response = await fetch("/api/scrape")
+
+      if (!response.ok) {
+        throw new Error(`Failed to trigger scrape: ${response.status} ${response.statusText}`)
+      }
+
       const data = await response.json()
 
       if (data.success) {
@@ -129,13 +200,14 @@ export default function EventsPage() {
         // Refresh events
         window.location.reload()
       } else {
-        alert(`Error: ${data.error}`)
+        throw new Error(data.error || "Unknown error occurred")
       }
     } catch (error) {
       console.error("Error triggering scrape:", error)
-      alert("Failed to trigger scraping")
+      setError(`Failed to trigger scraping: ${error instanceof Error ? error.message : String(error)}`)
+      alert(`Error: ${error instanceof Error ? error.message : String(error)}`)
     } finally {
-      setLoading(false)
+      setScraping(false)
     }
   }
 
@@ -150,24 +222,31 @@ export default function EventsPage() {
 
     if (filter.date !== "all") {
       const today = new Date()
+      today.setHours(0, 0, 0, 0) // Set to beginning of day for accurate comparison
+
       const tomorrow = new Date(today)
       tomorrow.setDate(tomorrow.getDate() + 1)
+
       const nextWeek = new Date(today)
       nextWeek.setDate(nextWeek.getDate() + 7)
+
       const nextMonth = new Date(today)
       nextMonth.setMonth(nextMonth.getMonth() + 1)
 
       result = result.filter((event) => {
+        // Parse the event date and normalize to beginning of day
         const eventDate = new Date(event.date)
+        eventDate.setHours(0, 0, 0, 0)
+
         switch (filter.date) {
           case "today":
-            return eventDate.toDateString() === today.toDateString()
+            return eventDate.getTime() === today.getTime()
           case "tomorrow":
-            return eventDate.toDateString() === tomorrow.toDateString()
+            return eventDate.getTime() === tomorrow.getTime()
           case "week":
-            return eventDate > today && eventDate <= nextWeek
+            return eventDate >= today && eventDate <= nextWeek
           case "month":
-            return eventDate > today && eventDate <= nextMonth
+            return eventDate >= today && eventDate <= nextMonth
           default:
             return true
         }
@@ -183,6 +262,7 @@ export default function EventsPage() {
   }, [filter, events])
 
   const handleGetTickets = (event: Event) => {
+    console.log("Get tickets clicked for event:", event.title)
     setSelectedEvent(event)
     setShowModal(true)
   }
@@ -197,54 +277,140 @@ export default function EventsPage() {
   }
 
   return (
-    <main className="main">
+    <main>
+      <section className="hero-section">
+        <div className="hero-background"></div>
+        <div className="container">
+          <div className="hero-content">
+            <h1 className="hero-title">Discover Sydney's Best Events</h1>
+            <p className="hero-subtitle">
+              Find concerts, festivals, exhibitions, and more happening in Sydney, automatically curated and updated
+              daily.
+            </p>
+            <div className="hero-actions">
+              <button
+                onClick={handleManualScrape}
+                className="button button-primary button-lg button-icon"
+                disabled={scraping || loading}
+              >
+                {scraping ? (
+                  <>
+                    <svg
+                      className="animate-spin"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+                    </svg>
+                    Scraping Events...
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+                    </svg>
+                    Refresh Events
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div className="container">
-        <section className="hero-section">
-          <h1 className="hero-title">Sydney Events</h1>
-          <p className="hero-subtitle">
-            Discover the best events happening in Sydney, automatically curated and updated daily.
-          </p>
-          <button onClick={handleManualScrape} className="button" style={{ marginTop: "1rem" }} disabled={loading}>
-            {loading ? "Loading..." : "Manually Scrape Events"}
-          </button>
+        <section className="filter-section">
+          <EventFilter onFilterChange={handleFilterChange} />
         </section>
 
-        <EventFilter onFilterChange={handleFilterChange} />
-
-        {loading ? (
-          <div className="loading-container">
-            <svg
-              className="loading-spinner animate-spin"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-          </div>
-        ) : error ? (
-          <div className="error-container">
-            <h3 className="error-title">Error loading events</h3>
-            <p className="error-message">{error}</p>
-            <p>Using sample events instead.</p>
-          </div>
-        ) : filteredEvents.length > 0 ? (
-          <div className="events-grid">
-            {filteredEvents.map((event) => (
-              <EventCard key={event._id} event={event} onGetTickets={handleGetTickets} />
-            ))}
-          </div>
-        ) : (
-          <div className="no-events">
-            <h3 className="no-events-title">No events found</h3>
-            <p className="no-events-message">Try adjusting your filters or check back later for new events.</p>
-          </div>
+        {!loading && !error && events.length > 0 && (
+          <section className="recommendations-section">
+            <EventRecommendations events={events} />
+          </section>
         )}
+
+        <section className="events-section">
+          <div className="container">
+            {loading ? (
+              <div className="loading-container">
+                <div className="loading-spinner"></div>
+                <p className="loading-text">Loading events...</p>
+              </div>
+            ) : error ? (
+              <div className="error-container">
+                <svg
+                  className="error-icon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <h3 className="error-title">Error loading events</h3>
+                <p className="error-message">{error}</p>
+                <p>Using sample events instead.</p>
+              </div>
+            ) : (
+              <>
+                <div className="events-header">
+                  <h2 className="events-title">Upcoming Events</h2>
+                  <p className="events-count">{filteredEvents.length} events found</p>
+                </div>
+
+                {filteredEvents.length > 0 ? (
+                  <div className="events-grid">
+                    {filteredEvents.map((event) => (
+                      <EventCard key={event._id} event={event} onGetTickets={handleGetTickets} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-container">
+                    <svg
+                      className="empty-icon"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M8 15h8"></path>
+                      <path d="M9 9h.01"></path>
+                      <path d="M15 9h.01"></path>
+                    </svg>
+                    <h3 className="empty-title">No events found</h3>
+                    <p className="empty-message">Try adjusting your filters or check back later for new events.</p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </section>
       </div>
 
       {showModal && selectedEvent && <EmailModal event={selectedEvent} onClose={handleCloseModal} />}
