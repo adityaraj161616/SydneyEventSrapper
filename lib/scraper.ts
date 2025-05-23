@@ -8,7 +8,7 @@ const SCRAPE_SITES = [
   {
     name: "Eventbrite",
     url: "https://www.eventbrite.com.au/d/australia--sydney/all-events/",
-    selector: ".search-event-card-square",
+    selector: ".eds-event-card-content__primary-content", // updated selector
   },
   {
     name: "TimeOut",
@@ -124,89 +124,23 @@ async function scrapeSite(browser, site) {
 }
 
 async function extractEventsTraditionally(page, site) {
-  // This is a simplified example - you would need to customize this for each site
   if (site.name === "Eventbrite") {
     return await page.evaluate(() => {
-      const events = []
-      const eventCards = document.querySelectorAll(".search-event-card-square")
-      console.log(`Found ${eventCards.length} event cards on Eventbrite`)
-
-      eventCards.forEach((card, index) => {
+      const events = [];
+      const cards = document.querySelectorAll(".eds-event-card-content__primary-content");
+      console.log("Eventbrite cards found:", cards.length);
+      cards.forEach((card) => {
         try {
-          const title = card.querySelector(".event-card__title")?.textContent?.trim()
-          const dateStr = card.querySelector(".event-card__date")?.textContent?.trim()
-          const location = card.querySelector(".location-info__venue-name")?.textContent?.trim()
-          const url = card.querySelector("a.event-card-link")?.href
-          const image = card.querySelector("img")?.src
-          const description =
-            card.querySelector(".event-card__description")?.textContent?.trim() ||
-            `Event details for ${title}. Check the website for more information.`
-
+          const title = card.querySelector(".eds-event-card-content__title")?.textContent?.trim();
+          const date = card.querySelector(".eds-text-bs--fixed")?.textContent?.trim();
+          const url = card.closest("a")?.href || card.querySelector("a")?.href;
           if (title && url) {
-            // Convert dateStr to ISO format (more robust approach)
-            let date = new Date().toISOString()
-            if (dateStr) {
-              try {
-                // Try to parse the date string
-                // Handle various date formats
-                const dateMatch = dateStr.match(/([A-Za-z]+)\s+(\d+)/)
-                if (dateMatch) {
-                  const month = dateMatch[1]
-                  const day = dateMatch[2]
-                  const year = new Date().getFullYear()
-                  const monthIndex = [
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sep",
-                    "Oct",
-                    "Nov",
-                    "Dec",
-                  ].findIndex((m) => month.startsWith(m))
-
-                  if (monthIndex !== -1) {
-                    const parsedDate = new Date(year, monthIndex, Number.parseInt(day))
-                    if (!isNaN(parsedDate.getTime())) {
-                      date = parsedDate.toISOString()
-                    }
-                  }
-                } else {
-                  // Try direct parsing
-                  const parsedDate = new Date(dateStr)
-                  if (!isNaN(parsedDate.getTime())) {
-                    date = parsedDate.toISOString()
-                  }
-                }
-              } catch (e) {
-                // If date parsing fails, keep the default (today)
-                console.error(`Failed to parse date: ${dateStr}`)
-              }
-            }
-
-            events.push({
-              title,
-              date,
-              location: location || "Sydney",
-              description,
-              url,
-              image,
-              source: "Eventbrite",
-              scrapedAt: new Date().toISOString(),
-              usedAI: false,
-            })
+            events.push({ title, date, url });
           }
-        } catch (e) {
-          console.error(`Error parsing event card ${index}:`, e)
-        }
-      })
-
-      return events
-    })
+        } catch {}
+      });
+      return events;
+    });
   } else if (site.name === "TimeOut") {
     return await page.evaluate(() => {
       const events = []

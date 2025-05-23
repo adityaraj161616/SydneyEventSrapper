@@ -1,0 +1,19 @@
+{
+  "name": "eventbrite-sydney-scraper",
+  "version": "1.0.0",
+  "description": "A web scraper to extract event data from Eventbrite Sydney.",
+  "main": "src/scraper.ts",
+  "scripts": {
+    "start": "ts-node src/scraper.ts"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "cheerio": "^1.0.0-rc.10"
+  },
+  "devDependencies": {
+    "ts-node": "^10.0.0",
+    "typescript": "^4.0.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
