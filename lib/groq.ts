@@ -372,4 +372,31 @@ export async function generateEventSummary(event: any) {
   }
 }
 
+export async function askGroq(prompt: string) {
+  const apiKey = process.env.GROQ_API_KEY;
+  const url = "https://api.groq.com/openai/v1/chat/completions";
+  const body = {
+    model: "meta-llama/llama-4-scout-17b-16e-instruct",
+    messages: [
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+  };
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) throw new Error("Groq API error");
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || "";
+}
+
 export default groqClient

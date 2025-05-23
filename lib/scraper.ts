@@ -1,7 +1,8 @@
 import puppeteer from "puppeteer"
 import { connectToDatabase } from "./mongodb"
-import { extractEventsWithGroq } from "./groq"
+import { extractEventsWithGroq, askGroq } from "./groq"
 import { notifySubscribersAboutNewEvents } from "./notification-service"
+import { extractEventsWithAI } from "./gemini"
 
 // List of sites to scrape
 const SCRAPE_SITES = [
@@ -98,6 +99,11 @@ async function scrapeSite(browser, site) {
       // If traditional scraping fails, use AI fallback
       events = await extractEventsWithAIFallback(page, site)
       console.log(`AI fallback found ${events.length} events`)
+    }
+
+    // Enrich events with AI-generated summaries
+    for (const event of events) {
+      event.summary = await askGroq(`Summarize this event: ${event.title} - ${event.description}`)
     }
 
     return events
